@@ -17,9 +17,6 @@ import { Observable } from 'rxjs/Observable';
 import { marbles } from 'rxjs-marbles';
 import { HttpClient } from '@angular/common/http';
 import { mockExecutionResult } from '../../service/execute-workflow/mock-result-data';
-import { JointGraphWrapper } from '../../service/workflow-graph/model/joint-graph-wrapper';
-import { WorkflowUtilService } from '../../service/workflow-graph/util/workflow-util.service';
-import { environment } from '../../../../environments/environment';
 
 class StubHttpClient {
 
@@ -31,7 +28,7 @@ describe('NavigationComponent', () => {
   let component: NavigationComponent;
   let fixture: ComponentFixture<NavigationComponent>;
   let executeWorkFlowService: ExecuteWorkflowService;
-  let workflowActionService: WorkflowActionService;
+
   beforeEach(async(() => {
     TestBed.configureTestingModule({
       declarations: [NavigationComponent],
@@ -41,7 +38,6 @@ describe('NavigationComponent', () => {
       ],
       providers: [
         WorkflowActionService,
-        WorkflowUtilService,
         JointUIService,
         ExecuteWorkflowService,
         { provide: OperatorMetadataService, useClass: StubOperatorMetadataService },
@@ -55,9 +51,7 @@ describe('NavigationComponent', () => {
     fixture = TestBed.createComponent(NavigationComponent);
     component = fixture.componentInstance;
     executeWorkFlowService = TestBed.get(ExecuteWorkflowService);
-    workflowActionService = TestBed.get(WorkflowActionService);
     fixture.detectChanges();
-    environment.pauseResumeEnabled = true;
   });
 
   it('should create', () => {
@@ -82,160 +76,39 @@ describe('NavigationComponent', () => {
 
   }));
 
-  it('should show pause/resume button when the workflow execution begins and hide the button when execution ends', marbles((m) => {
+  it('should show spinner when the workflow execution begins and hide spinner when execution ends', marbles((m) => {
 
     const httpClient: HttpClient = TestBed.get(HttpClient);
     spyOn(httpClient, 'post').and.returnValue(
       Observable.of(mockExecutionResult)
     );
 
-    // expect initially the pause/resume button is not showing
+    // expect initially there is no spinner
 
-    expect(component.isWorkflowRunning).toBeFalsy();
-    expect(component.isWorkflowPaused).toBeFalsy();
+    expect(component.showSpinner).toBeFalsy();
+    let spinner = fixture.debugElement.query(By.css('.texera-navigation-loading-spinner'));
+    expect(spinner).toBeFalsy();
+
+    m.hot('-e-').do(() => component.onClickRun()).subscribe();
 
     executeWorkFlowService.getExecuteStartedStream().subscribe(
       () => {
         fixture.detectChanges();
-        expect(component.isWorkflowRunning).toBeTruthy();
-        expect(component.isWorkflowPaused).toBeFalsy();
+        expect(component.showSpinner).toBeTruthy();
+        spinner = fixture.debugElement.query(By.css('.texera-navigation-loading-spinner'));
+        expect(spinner).toBeTruthy();
       }
     );
 
     executeWorkFlowService.getExecuteEndedStream().subscribe(
       () => {
         fixture.detectChanges();
-        expect(component.isWorkflowRunning).toBeFalsy();
-        expect(component.isWorkflowPaused).toBeFalsy();
+        expect(component.showSpinner).toBeFalsy();
+        spinner = fixture.debugElement.query(By.css('.texera-navigation-loading-spinner'));
+        expect(spinner).toBeFalsy();
       }
     );
 
-    m.hot('-e-').do(() => component.onButtonClick()).subscribe();
-
-  }));
-
-  it('should call pauseWorkflow function when isWorkflowPaused is false', () => {
-    const pauseWorkflowSpy = spyOn(executeWorkFlowService, 'pauseWorkflow').and.callThrough();
-    component.isWorkflowRunning = true;
-    component.isWorkflowPaused = false;
-
-    (executeWorkFlowService as any).workflowExecutionID = 'MOCK_EXECUTION_ID';
-
-    component.onButtonClick();
-    expect(pauseWorkflowSpy).toHaveBeenCalled();
-  });
-
-  it('should call resumeWorkflow function when isWorkflowPaused is true', () => {
-    const resumeWorkflowSpy = spyOn(executeWorkFlowService, 'resumeWorkflow').and.callThrough();
-    component.isWorkflowRunning = true;
-    component.isWorkflowPaused = true;
-
-    (executeWorkFlowService as any).workflowExecutionID = 'MOCK_EXECUTION_ID';
-
-    component.onButtonClick();
-    expect(resumeWorkflowSpy).toHaveBeenCalled();
-  });
-
-  it('should not call resumeWorkflow or pauseWorkflow if the workflow is not currently running', () => {
-    const pauseWorkflowSpy = spyOn(executeWorkFlowService, 'pauseWorkflow').and.callThrough();
-    const resumeWorkflowSpy = spyOn(executeWorkFlowService, 'resumeWorkflow').and.callThrough();
-
-    component.onButtonClick();
-    expect(pauseWorkflowSpy).toHaveBeenCalledTimes(0);
-    expect(resumeWorkflowSpy).toHaveBeenCalledTimes(0);
-  });
-
-  it('it should update isWorkflowPaused variable to true when 0 is returned from getExecutionPauseResumeStream', marbles((m) => {
-    const endMarbleString = '-e-|';
-    const endMarblevalues = {
-      e: 0
-    };
-
-    spyOn(executeWorkFlowService, 'getExecutionPauseResumeStream').and.returnValue(
-      m.hot(endMarbleString, endMarblevalues)
-    );
-
-    const mockComponent = new NavigationComponent(executeWorkFlowService, TestBed.get(TourService), workflowActionService);
-
-    executeWorkFlowService.getExecutionPauseResumeStream()
-      .subscribe({
-        complete: () => {
-          expect(mockComponent.isWorkflowPaused).toBeTruthy();
-        }
-      });
-  }));
-
-
-  it('it should update isWorkflowPaused variable to false when 1 is returned from getExecutionPauseResumeStream', marbles((m) => {
-    const endMarbleString = '-e-|';
-    const endMarblevalues = {
-      e: 1
-    };
-
-    spyOn(executeWorkFlowService, 'getExecutionPauseResumeStream').and.returnValue(
-      m.hot(endMarbleString, endMarblevalues)
-    );
-
-    const mockComponent = new NavigationComponent(executeWorkFlowService, TestBed.get(TourService), workflowActionService);
-
-    executeWorkFlowService.getExecutionPauseResumeStream()
-      .subscribe({
-        complete: () => {
-          expect(mockComponent.isWorkflowPaused).toBeFalsy();
-        }
-      });
-  }));
-
-  it('should change zoom to be smaller when user click on the zoom out buttons', marbles((m) => {
-     // expect initially the zoom ratio is 1;
-   const originalZoomRatio = 1;
-
-   m.hot('-e-').do(() => component.onClickZoomOut()).subscribe();
-   workflowActionService.getJointGraphWrapper().getWorkflowEditorZoomStream().subscribe(
-     newRatio => {
-       fixture.detectChanges();
-       expect(newRatio).toBeLessThan(originalZoomRatio);
-       expect(newRatio).toEqual(originalZoomRatio - JointGraphWrapper.ZOOM_DIFFERENCE);
-     }
-   );
-
-  }));
-
-  it('should change zoom to be bigger when user click on the zoom in buttons', marbles((m) => {
-    // expect initially the zoom ratio is 1;
-   const originalZoomRatio = 1;
-
-   m.hot('-e-').do(() => component.onClickZoomIn()).subscribe();
-   workflowActionService.getJointGraphWrapper().getWorkflowEditorZoomStream().subscribe(
-     newRatio => {
-       fixture.detectChanges();
-       expect(newRatio).toBeGreaterThan(originalZoomRatio);
-       expect(newRatio).toEqual(originalZoomRatio + JointGraphWrapper.ZOOM_DIFFERENCE);
-     }
-   );
-
-
-  }));
-
-  it('should execute the zoom in function when the user click on the Zoom In button', marbles((m) => {
-    m.hot('-e-').do(event => component.onClickZoomIn()).subscribe();
-    const zoomEndStream = workflowActionService.getJointGraphWrapper().getWorkflowEditorZoomStream().map(value => 'e');
-    const expectedStream = '-e-';
-    m.expect(zoomEndStream).toBeObservable(expectedStream);
-  }));
-
-  it('should execute the zoom out function when the user click on the Zoom Out button', marbles((m) => {
-    m.hot('-e-').do(event => component.onClickZoomOut()).subscribe();
-    const zoomEndStream = workflowActionService.getJointGraphWrapper().getWorkflowEditorZoomStream().map(value => 'e');
-    const expectedStream = '-e-';
-    m.expect(zoomEndStream).toBeObservable(expectedStream);
-  }));
-
-  it('should execute restore default when the user click on restore button', marbles((m) => {
-    m.hot('-e-').do(event => component.onClickRestoreZoomOffsetDefaullt()).subscribe();
-    const restoreEndStream = workflowActionService.getJointGraphWrapper().getRestorePaperOffsetStream().map(value => 'e');
-    const expectStream = '-e-';
-    m.expect(restoreEndStream).toBeObservable(expectStream);
   }));
 
 });

@@ -1,8 +1,13 @@
 package com.google.re2j;
 
+import edu.uci.ics.texera.dataflow.regexmatcher.SubRegex;
+import org.apache.commons.lang3.StringEscapeUtils;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.List;
 
 /**
  * Public Wrapper class for re2j.Regexp.<!-- --> This class represents the
@@ -191,7 +196,7 @@ public class PublicRegexp extends Regexp {
     }
 
     /**
-     * @see getMin
+     * @see //getMin
      * @return an int indicating maxinum number of repetitions
      */
     public int getMax() {
@@ -228,5 +233,229 @@ public class PublicRegexp extends Regexp {
     public String getCapName() {
         return this.name;
     }
+    public List<String> getSequence(PublicRegexp re){
+        List<String> sequences = new ArrayList<>();
+        // System.out.println(re.toString()+" "+ re.getOp().toString());
 
+        if(re.getOp() == PublicRegexp.PublicOp.CONCAT){
+            for (PublicRegexp sub : re.getSubs()) {
+                if (sub.getOp() == PublicOp.CHAR_CLASS)
+                    sequences.add(sub.name);
+                else
+                   sequences = getSequence(sub);
+            }
+
+        }else if(re.getOp() == PublicOp.ALTERNATE){
+            for(PublicRegexp sub : re.getSubs()) {
+                //System.out.println(" " + sub.toString());
+               sequences.addAll(getSequence(sub));
+            }
+
+        }else if(re.getOp() == PublicOp.QUEST){
+            // minLength++;
+
+        }else if(re.getOp() == PublicOp.CHAR_CLASS){
+            sequences.add(re.name);
+
+        }else if(re.getOp() == PublicOp.CAPTURE){
+            PublicRegexp sub1 = re.getSubs()[0];
+            sequences.addAll(getSequence(sub1));
+
+
+        }else if(re.getOp() == PublicOp.REPEAT){
+            //System.out.println(re.toString()+" repeat "+ re.getOp().toString());
+
+        }else if(re.getOp() == PublicOp.STAR || re.getOp() == PublicOp.PLUS){
+            // System.out.println("====== "+re.toString().charAt(0));
+
+            PublicRegexp sub1 = re.getSubs()[0];
+            sequences.addAll(getSequence(sub1));
+
+        }else {
+            //System.out.println("re" + StringEscapeUtils.unescapeJava(re.toString()));
+            sequences.add(re.toString());
+        }
+        return sequences;
+
+    }
+    //TODO hasOp
+    public static boolean hasOp(PublicRegexp re, PublicOp op){
+       //  System.out.println(re.toString()+ "--------"+re.getOp()+ " "+ op);
+        if (re.getOp() == op)
+            return true;
+        else {
+            if(re.getOp() == PublicOp.LITERAL || re.getOp() == PublicOp.CHAR_CLASS) return false;
+            for (PublicRegexp sub : re.getSubs()) {
+                if (hasOp(sub, op)) {
+                    return true;
+                }
+                else return false;
+            }
+            return false;
+        }
+    }
+
+    public static String reverseDeepCopy(PublicRegexp sub){
+        //System.out.println("reverseDeepCopy " + sub.toString());
+        //PublicRegexp publicRegexp = new PublicRegexp(re);
+        //StringBuffer reverseSubStringBuffer = new StringBuffer();
+        String reverseSubString = "";
+        if (sub != null) {
+           // System.out.println("reverseOp " + sub.getOp().toString());
+            // map every Regexp sub-expression to a PublicRegexp sub-expression
+            //Stream<PublicRegexp> publicSubStream = Arrays.asList(sub).stream().map(sub -> PublicRegexp.deepCopy(sub));
+            // reverse sub.toString()
+            if(sub.getOp() == PublicOp.ALTERNATE) {
+
+                for (PublicRegexp sub1 : sub.getSubs()) {
+
+                   String subString = reverseDeepCopy(sub1);
+                   reverseSubString += subString;
+
+                   reverseSubString += "|";
+
+
+                }
+                reverseSubString = reverseSubString.substring(0, reverseSubString.length()-1);
+                reverseSubString = "(" + reverseSubString + ")";
+                //System.out.println("Copy " + reverseSubString);
+
+            }else if(sub.getOp() == PublicOp.CONCAT || sub.getOp() == PublicOp.CAPTURE || sub.getOp() == PublicOp.STAR
+                    || sub.getOp() == PublicOp.QUEST || sub.getOp() == PublicOp.PLUS){
+                for(int i = sub.publicSubs.length-1; i >= 0; i--){
+                    PublicRegexp sub2  = sub.publicSubs[i];
+                    //if()
+                     reverseSubString += reverseDeepCopy(sub2);
+
+                }
+                if(sub.getOp() == PublicOp.CAPTURE) {
+
+                    reverseSubString = "(" + reverseSubString + ")";
+                    //System.out.println("reverseString"+ reverseSubString);
+                }
+                else if(sub.getOp() == PublicOp.PLUS){
+                    reverseSubString = reverseSubString + "+";
+                }else if(sub.getOp() == PublicOp.STAR){
+                    reverseSubString = reverseSubString + "*";
+                }else if(sub.getOp() == PublicOp.QUEST){
+                    reverseSubString = reverseSubString + "?";
+                }
+            }else if (sub.getOp() == PublicOp.CHAR_CLASS){
+                reverseSubString = sub.toString();
+
+            } else if(sub.getOp() == PublicOp.LITERAL){
+                if(sub.toString().startsWith("\\"))
+                    reverseSubString = sub.toString();
+                else {
+                    String subString = sub.toString().replaceAll("\\\\.", ".");
+                    StringBuffer reversesub = new StringBuffer(subString);
+                    reversesub.reverse();
+
+                    //System.out.println("reversesub " + reversesub.toString());
+                    reverseSubString = reversesub.toString();
+                }
+            }else reverseSubString = sub.toString();
+
+        }else
+            return null;
+        return reverseSubString;
+    }
+
+    public static int computeMinLength(PublicRegexp re){
+        int minLength = 0;
+       // System.out.println(re.toString()+" "+ re.getOp().toString());
+
+        if(re.getOp() == PublicRegexp.PublicOp.CONCAT){
+            for (PublicRegexp sub : re.getSubs()) {
+                if (sub.getOp() == PublicOp.CHAR_CLASS)
+                    minLength++;
+                else
+                    minLength += computeMinLength(sub);
+            }
+
+        }else if(re.getOp() == PublicOp.ALTERNATE){
+            minLength = computeMinLength(re.getSubs()[0]);
+            for(PublicRegexp sub : re.getSubs()) {
+                //System.out.println(sub.toString() + "====== "+re.toString().charAt(0));
+                if(computeMinLength(sub)<minLength)
+                    minLength = computeMinLength(sub);
+                else continue;
+            }
+
+        }else if(re.getOp() == PublicOp.QUEST){
+            //minLength++;
+
+        }else if(re.getOp() == PublicOp.CHAR_CLASS){
+             minLength++;
+
+        }else if(re.getOp() == PublicOp.CAPTURE){
+            PublicRegexp sub1 = re.getSubs()[0];
+            minLength = computeMinLength(sub1);
+
+
+        }else if(re.getOp() == PublicOp.REPEAT){
+            //System.out.println(re.toString()+" repeat "+ re.getOp().toString());
+            minLength = re.getMin();
+        }else if(re.getOp() == PublicOp.LITERAL){
+           // System.out.println("====== "+re.toString().charAt(0));
+            // for regex \\.
+            int count = 0;
+            for(int i=0; i< re.toString().length(); i++) {
+                if (re.toString().charAt(i) == '\\')
+                    count++;
+            }
+            minLength = re.toString().length()-count;
+
+        }
+        return minLength;
+    }
+
+    public static int computeMaxLength(PublicRegexp re){
+        int maxLength = 0;
+        // System.out.println(re.toString()+" "+ re.getOp().toString());
+
+        if(re.getOp() == PublicRegexp.PublicOp.CONCAT){
+            for (PublicRegexp sub : re.getSubs()) {
+                if (sub.getOp() == PublicOp.CHAR_CLASS)
+                    maxLength++;
+                else
+                    maxLength += computeMaxLength(sub);
+            }
+
+        }else if(re.getOp() == PublicOp.ALTERNATE){
+            maxLength = computeMaxLength(re.getSubs()[0]);
+            for(PublicRegexp sub : re.getSubs()) {
+                //System.out.println(sub.toString() + "====== "+re.toString().charAt(0));
+                if(computeMaxLength(sub)>maxLength)
+                    maxLength = computeMaxLength(sub);
+                else continue;
+            }
+
+        }else if(re.getOp() == PublicOp.QUEST){
+            maxLength++;
+
+        }else if(re.getOp() == PublicOp.CHAR_CLASS){
+            maxLength++;
+
+        }else if(re.getOp() == PublicOp.CAPTURE){
+            PublicRegexp sub1 = re.getSubs()[0];
+            maxLength = computeMaxLength(sub1);
+
+
+        }else if(re.getOp() == PublicOp.REPEAT){
+            //System.out.println(re.toString()+" repeat "+ re.getOp().toString());
+            maxLength = re.getMax();
+        }else if(re.getOp() == PublicOp.LITERAL){
+            // System.out.println("====== "+re.toString().charAt(0));
+            // for regex \\.
+            int count = 0;
+            for(int i=0; i< re.toString().length(); i++) {
+                if (re.toString().charAt(i) == '\\')
+                    count++;
+            }
+            maxLength = re.toString().length()-count;
+
+        }
+        return maxLength;
+    }
 }

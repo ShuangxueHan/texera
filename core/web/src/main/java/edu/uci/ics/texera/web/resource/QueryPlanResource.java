@@ -58,16 +58,22 @@ public class QueryPlanResource {
     // TODO: investigate how to use LogicalPlan directly
     public JsonNode executeQueryPlan(String logicalPlanJson) {
         try {
+            System.out.println("1.executeQueryPlan");
             LogicalPlan logicalPlan = new ObjectMapper().readValue(logicalPlanJson, LogicalPlan.class);
             Plan plan = logicalPlan.buildQueryPlan();
             ISink sink = plan.getRoot();
             
             // send response back to frontend
             if (sink instanceof TupleSink) {
+
                 TupleSink tupleSink = (TupleSink) sink;
+                //long startTime = System.currentTimeMillis();
                 tupleSink.open();
+                System.out.println("1.1.1 executeQueryPlan");
                 List<Tuple> results = tupleSink.collectAllTuples();
                 tupleSink.close();
+                long endTime = System.currentTimeMillis();
+                //System.out.println("Running time："+(endTime-startTime)+"ms");
                 
                 // make sure result directory is created
                 if (Files.notExists(resultDirectory)) {
@@ -91,7 +97,7 @@ public class QueryPlanResource {
                 for (Tuple tuple : results) {
                     resultNode.add(tuple.getReadableJson());
                 }
-                
+                System.out.println("1.1.2.executeQueryPlanends");
                 ObjectNode response = new ObjectMapper().createObjectNode();
                 response.put("code", 0);
                 response.set("result",resultNode);

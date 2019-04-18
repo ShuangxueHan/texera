@@ -12,7 +12,7 @@ import { TourNgBootstrapModule } from 'ngx-tour-ng-bootstrap';
 
 
 import { MaterialDesignFrameworkModule } from 'angular6-json-schema-form';
-import { NgxJsonViewerModule } from 'ngx-json-viewer';
+
 
 import { AppComponent } from './app.component';
 import { WorkspaceComponent } from './workspace/component/workspace.component';
@@ -23,7 +23,6 @@ import { WorkflowEditorComponent } from './workspace/component/workflow-editor/w
 import { ResultPanelComponent, NgbModalComponent } from './workspace/component/result-panel/result-panel.component';
 import { OperatorLabelComponent } from './workspace/component/operator-panel/operator-label/operator-label.component';
 import { ProductTourComponent } from './workspace/component/product-tour/product-tour.component';
-import { ResultPanelToggleComponent } from './workspace/component/result-panel-toggle/result-panel-toggle.component';
 
 @NgModule({
   declarations: [
@@ -36,15 +35,13 @@ import { ResultPanelToggleComponent } from './workspace/component/result-panel-t
     ResultPanelComponent,
     NgbModalComponent,
     OperatorLabelComponent,
-    ProductTourComponent,
-    ResultPanelToggleComponent
+    ProductTourComponent
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     HttpClientModule,
 
-    NgxJsonViewerModule,
     CustomNgMaterialModule,
     BrowserAnimationsModule,
     NgbModule.forRoot(),

@@ -369,11 +369,11 @@ public class RelationManager {
      */
     private static Tuple getTableCatalogTuple(String tableName) throws StorageException {
         tableName = tableName.toLowerCase();
-        
+
         Query tableNameQuery = new TermQuery(new Term(CatalogConstants.TABLE_NAME, tableName));
         DataReader tableCatalogDataReader = new DataReader(CatalogConstants.TABLE_CATALOG_DATASTORE, tableNameQuery);
         tableCatalogDataReader.setPayloadAdded(false);
-        
+
         tableCatalogDataReader.open();
         List<Tuple> tupleList = new ArrayList<>();
         Tuple nextTuple;
@@ -381,7 +381,6 @@ public class RelationManager {
             tupleList.add(nextTuple);
         }
         tableCatalogDataReader.close();
-        
         if (tupleList.size() == 0) {
             return null;
         } else if (tupleList.size() == 1) {

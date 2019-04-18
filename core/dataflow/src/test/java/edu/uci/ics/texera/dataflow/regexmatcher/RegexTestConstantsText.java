@@ -53,6 +53,9 @@ public class RegexTestConstantsText {
 
         textTuples.add(getTextTuple(
                 "This regex matches any single character surrounded by brackets, since the brackets are escaped, for example: '[a]' and '[!]'."));
+        textTuples.add(getTextTuple(
+                "This regex matches any single character surrounded by tested  testing tests brackets, since the brackets are escaped, for example: '[a]' and '[!]'."));
+
         return textTuples;
     }
 }

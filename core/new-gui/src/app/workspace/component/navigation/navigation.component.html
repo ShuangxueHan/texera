@@ -1,29 +1,17 @@
-<nav class="texera-navigation-body navbar navbar-expand-sm bg-dark navbar-dark">
-  <a class="navbar-brand texera-navigation-title" href="#">
-    Texera <span class="version-number">0.3.0</span>
-  </a>
-  <div class="collapse navbar-collapse texera-navigation-utilities">
-    <i class="navbar-brand zoom-button fa fa-search-minus" (click)="onClickZoomOut()" title="zoom in"></i>
-    <i class="navbar-brand zoom-button fa fa-search-plus" (click)="onClickZoomIn()" title="zoom in"></i>
-    <i class="navbar-brand zoom-button fa fa-arrows-alt" (click)="onClickRestoreZoomOffsetDefaullt()" title="reset zoom"></i>
-  </div>
-  <div class="collapse navbar-collapse texera-navigation-execute">
-    <div class="button" tourAnchor="texera-workspace-navigation-run">
-      <button class="btn btn-secondary texera-workspace-tour-run" (click)="tourService.toggle()" tourAnchor="start.tour">
-          <span>
-            <i id="texera-tour-icon" class="fa fa-question-circle-o" aria-hidden="true"></i>
-          </span>
-      </button>
-
-      <button mat-raised-button class="texera-navigation-run-button texera-navigation-run-text" (click)="onButtonClick()">
+<nav class="texera-navigation-body navbar navbar-expand-sm bg-dark navbar-dark justify-content-between">
+  <a class="navbar-brand" href="#">Texera</a>
+  <div>
+    <button id="texera-workspace-tour-run" (click)="tourService.toggle()" class="btn btn-secondary" tourAnchor="start.tour">
         <span>
-          <i *ngIf="!runSpinner()" id="texera-run-icon" class="fa fa-play" aria-hidden="true"></i>
-          <i *ngIf="runSpinner()" id="texera-pause-icon" class="fa fa-spinner fa-spin" aria-hidden="true"></i>
+          <i id="texera-tour-icon" class="fa fa-question-circle-o" aria-hidden="true"></i>
         </span>
-        <span>
-            {{ getRunButtonText()}}
-        </span>
-      </button>
-    </div>
+    </button>
+    <button mat-raised-button color="accent" class="texera-navigation-run-button" tourAnchor= "texera-workspace-navigation-run" (click)="onClickRun()">
+      <mat-spinner class="texera-navigation-loading-spinner" *ngIf="showSpinner" [diameter]="30"></mat-spinner>
+      <div *ngIf="!showSpinner" class="texera-navigation-run-text">
+        <i id="texera-run-icon" class="fa fa-play" aria-hidden="true"></i>
+        Run
+      </div>
+    </button>
   </div>
 </nav>

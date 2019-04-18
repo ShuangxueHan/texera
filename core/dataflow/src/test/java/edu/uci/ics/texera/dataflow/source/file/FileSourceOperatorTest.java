@@ -25,9 +25,11 @@ import junit.framework.Assert;
 
 public class FileSourceOperatorTest {
     
-    public static Path tempFolderPath = Paths.get("./index/test_tables/filesource/tempfolder/");
-    
-    public static Path tempFile1Path = tempFolderPath.resolve("test1.txt");
+   // public static Path tempFolderPath = Paths.get("./index/test_tables/filesource/tempfolder/");
+    //public static Path tempFile1Path = tempFolderPath.resolve("test1.txt");
+    public static Path tempFolderPath = Paths.get("E:\\Github\\texera\\core\\perftest\\src\\main\\resources\\sample-data-files");
+    public static Path tempFile1Path = tempFolderPath.resolve("abstract_100.txt");
+
     public static String tempFile1String = "File Source Operator Test File 1. This file is directly under test folder.";
     
     public static Path tempFile2Path = tempFolderPath.resolve("test2.txt");
@@ -110,6 +112,7 @@ public class FileSourceOperatorTest {
         while ((tuple = fileSource.getNextTuple()) != null) {
             exactResults.add(tuple);
         }
+        System.out.println("fileSource size: " +tempFile1String);
         fileSource.close();
         
         List<Tuple> expectedResults = Arrays.asList(

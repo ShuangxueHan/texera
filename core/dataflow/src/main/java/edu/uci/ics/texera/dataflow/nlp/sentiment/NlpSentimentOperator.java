@@ -117,7 +117,6 @@ public class NlpSentimentOperator implements IOperator {
             String sentenceText = sentence.toString();
             if (sentenceText.length() > longestSentenceLength) {
                 mainSentiment = sentiment;
-                longestSentenceLength=sentenceText.length();
             }
         }
         return normalizeSentimentScore(mainSentiment);

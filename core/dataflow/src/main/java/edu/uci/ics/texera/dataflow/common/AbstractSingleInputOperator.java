@@ -34,6 +34,7 @@ public abstract class AbstractSingleInputOperator implements IOperator {
     
     @Override
     public void open() throws TexeraException {
+        //System.out.println("4.1.open");
         if (cursor != CLOSED) {
             return;
         }
@@ -42,6 +43,7 @@ public abstract class AbstractSingleInputOperator implements IOperator {
                 throw new DataflowException(ErrorMessages.INPUT_OPERATOR_NOT_SPECIFIED);
             }
             inputOperator.open();
+
             setUp();
             
         } catch (Exception e) {
@@ -59,6 +61,7 @@ public abstract class AbstractSingleInputOperator implements IOperator {
 
     @Override
     public Tuple getNextTuple() throws TexeraException {
+        //System.out.println("4.3 getNextTuple"+ cursor);
         if (cursor == CLOSED) {
             throw new DataflowException(ErrorMessages.OPERATOR_NOT_OPENED);
         }
@@ -67,6 +70,7 @@ public abstract class AbstractSingleInputOperator implements IOperator {
         }
         try {
             Tuple resultTuple = null;
+
             while (true) {
                 resultTuple = computeNextMatchingTuple();
                 if (resultTuple == null) {
@@ -77,6 +81,7 @@ public abstract class AbstractSingleInputOperator implements IOperator {
                     break;
                 }
             }
+
             return resultTuple;
         } catch (Exception e) {
             throw new DataflowException(e.getMessage(), e);
@@ -100,7 +105,8 @@ public abstract class AbstractSingleInputOperator implements IOperator {
         }
         try {
             if (inputOperator != null) {
-                inputOperator.close();
+                //inputOperator.close();
+                //System.out.println("inputOperator close");
             }
             cleanUp();
         } catch (Exception e) {

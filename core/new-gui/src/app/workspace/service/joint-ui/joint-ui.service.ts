@@ -42,7 +42,6 @@ class TexeraCustomJointElement extends joint.shapes.devs.Model {
       <rect class="body" stroke-width="2" stroke="blue" rx="5px" ry="5px"></rect>
       ${deleteButtonSVG}
       <text></text>
-      <image></image>
     </g>`;
 }
 
@@ -64,8 +63,8 @@ class TexeraCustomJointElement extends joint.shapes.devs.Model {
 @Injectable()
 export class JointUIService {
 
-  public static readonly DEFAULT_OPERATOR_WIDTH = 60;
-  public static readonly DEFAULT_OPERATOR_HEIGHT = 60;
+  public static readonly DEFAULT_OPERATOR_WIDTH = 140;
+  public static readonly DEFAULT_OPERATOR_HEIGHT = 40;
 
   private operators: ReadonlyArray<OperatorSchema> = [];
 
@@ -112,7 +111,7 @@ export class JointUIService {
     const operatorElement = new TexeraCustomJointElement({
       position: point,
       size: { width: JointUIService.DEFAULT_OPERATOR_WIDTH, height: JointUIService.DEFAULT_OPERATOR_HEIGHT },
-      attrs: JointUIService.getCustomOperatorStyleAttrs(operatorSchema.additionalMetadata.userFriendlyName, operatorSchema.operatorType),
+      attrs: JointUIService.getCustomOperatorStyleAttrs(operatorSchema.additionalMetadata.userFriendlyName),
       ports: {
         groups: {
           'in': { attrs: JointUIService.getCustomPortStyleAttrs() },
@@ -173,12 +172,6 @@ export class JointUIService {
    */
   public static getDefaultLinkCell(): joint.dia.Link {
     const link = new joint.dia.Link({
-      router: {
-        name: 'manhattan'
-      },
-      connector: {
-        name: 'rounded'
-      },
       attrs: {
         '.connection-wrap': {
           'stroke-width': 0
@@ -241,24 +234,16 @@ export class JointUIService {
    * @param operatorDisplayName the name of the operator that will display on the UI
    * @returns the custom attributes of the operator
    */
-  public static getCustomOperatorStyleAttrs(operatorDisplayName: string, operatorType: string): joint.shapes.devs.ModelSelectors {
+  public static getCustomOperatorStyleAttrs(operatorDisplayName: string): joint.shapes.devs.ModelSelectors {
     const operatorStyleAttrs = {
       'rect': { fill: '#FFFFFF', 'follow-scale': true, stroke: '#CFCFCF', 'stroke-width': '2' },
       'text': {
-        text: operatorDisplayName, fill: '#595959', 'font-size': '14px',
-        'ref-x': 0.5, 'ref-y': 80, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle'
+        text: operatorDisplayName, fill: 'black', 'font-size': '12px',
+        'ref-x': 0.5, 'ref-y': 0.5, ref: 'rect', 'y-alignment': 'middle', 'x-alignment': 'middle'
       },
       '.delete-button': {
-        x: 60, y: -20, cursor: 'pointer',
+        x: 135, y: -20, cursor: 'pointer',
         fill: '#D8656A', event: 'element:delete'
-      },
-      'image': {
-        'href': 'assets/operator_images/' + operatorType + '.png',
-        width: 35, height: 35,
-        'ref-x': .5, 'ref-y': .5,
-        ref: 'rect',
-        'x-alignment': 'middle',
-        'y-alignment': 'middle'
       },
     };
     return operatorStyleAttrs;

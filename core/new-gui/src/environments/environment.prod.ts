@@ -1,6 +1,3 @@
-import { AppEnv, defaultEnvironment } from './environment.default';
-
-export const environment: AppEnv = {
-  ...defaultEnvironment,
+export const environment = {
   production: true
 };

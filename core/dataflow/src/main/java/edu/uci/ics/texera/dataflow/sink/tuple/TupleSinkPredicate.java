@@ -11,6 +11,8 @@ import edu.uci.ics.texera.dataflow.common.OperatorGroupConstants;
 import edu.uci.ics.texera.dataflow.common.PredicateBase;
 import edu.uci.ics.texera.dataflow.common.PropertyNameConstants;
 
+import java.util.PropertyResourceBundle;
+
 public class TupleSinkPredicate extends PredicateBase {
 
     private Integer limit;

@@ -25,6 +25,7 @@ public class RegexMatcherSourceOperator extends AbstractSingleInputOperator impl
     private final RegexMatcher regexMatcher;
     
     public RegexMatcherSourceOperator(RegexSourcePredicate predicate) throws StorageException, DataflowException {
+        //System.out.println("4.1RegexMatcherSourceOperator");
         this.predicate = predicate;
         
         if (this.predicate.isUseIndex()) {

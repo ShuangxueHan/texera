@@ -60,7 +60,7 @@ public class LabeledRegexProcessor {
                 Pattern.compile(regexWithVal, Pattern.CASE_INSENSITIVE)
                 : Pattern.compile(regexWithVal);
                 
-        return RegexMatcher.computeMatchingResultsWithPattern(inputTuple, predicate, regexPattern);
+        return RegexMatcher.computeMatchingResultsWithPattern("", predicate, regexPattern);
     }
     
     /**

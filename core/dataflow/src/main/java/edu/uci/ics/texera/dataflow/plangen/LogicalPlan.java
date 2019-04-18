@@ -246,7 +246,7 @@ public class LogicalPlan {
      * @throws PlanGenException, if the operator graph is invalid.
      */
     public Plan buildQueryPlan() throws PlanGenException {
-
+        System.out.println("2.buildQueryPlan");
         buildOperators();
         validateOperatorGraph();
         connectOperators(operatorObjectMap);
@@ -459,7 +459,8 @@ public class LogicalPlan {
      * It goes through every link, and invokes
      * the corresponding "setInputOperator" function to connect operators.
      */
-    private void connectOperators(HashMap<String, IOperator> operatorObjectMap) throws PlanGenException { 
+    private void connectOperators(HashMap<String, IOperator> operatorObjectMap) throws PlanGenException {
+        //System.out.println("3.1.connectOperators");
         for (String vertex : adjacencyList.keySet()) {
             IOperator currentOperator = operatorObjectMap.get(vertex);
             int outputArity = adjacencyList.get(vertex).size();

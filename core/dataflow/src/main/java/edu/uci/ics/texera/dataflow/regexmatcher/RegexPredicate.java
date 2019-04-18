@@ -3,6 +3,7 @@ package edu.uci.ics.texera.dataflow.regexmatcher;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Stack;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -25,9 +26,11 @@ import edu.uci.ics.texera.dataflow.common.PropertyNameConstants;
  */
 public class RegexPredicate extends PredicateBase {
 
-    private final String regex;
+    private String regex;
     private final List<String> attributeNames;
-    private final String spanListName;
+
+
+    private String spanListName;
     private final Boolean ignoreCase;
     
     /*
@@ -36,7 +39,9 @@ public class RegexPredicate extends PredicateBase {
     public RegexPredicate(String regex, List<String> attributeNames, String spanListName) {
         this(regex, attributeNames, null, spanListName);
     }
-
+    public RegexPredicate(RegexPredicate that) {
+        this(that.regex, that.attributeNames, that.ignoreCase, that.spanListName);
+    }
     /**
      * RegexPredicate is used to create a RegexMatcher.
      * 
@@ -83,7 +88,9 @@ public class RegexPredicate extends PredicateBase {
     public String getRegex() {
         return this.regex;
     }
-
+    public void setRegex(String regex) {
+        this.regex = regex;
+    }
     @JsonProperty(PropertyNameConstants.ATTRIBUTE_NAMES)
     public List<String> getAttributeNames() {
         return new ArrayList<>(this.attributeNames);
@@ -93,12 +100,16 @@ public class RegexPredicate extends PredicateBase {
     public String getSpanListName() {
         return this.spanListName;
     }
-    
+
+    public void setSpanListName(String spanListName) {
+        this.spanListName = spanListName;
+    }
+
     @JsonProperty(PropertyNameConstants.REGEX_IGNORE_CASE)
     public Boolean isIgnoreCase() {
         return this.ignoreCase;
     }
-    
+
     @Override
     public IOperator newOperator() {
         return new RegexMatcher(this);
@@ -111,5 +122,6 @@ public class RegexPredicate extends PredicateBase {
             .put(PropertyNameConstants.OPERATOR_GROUP_NAME, OperatorGroupConstants.SEARCH_GROUP)
             .build();
     }
+
 
 }

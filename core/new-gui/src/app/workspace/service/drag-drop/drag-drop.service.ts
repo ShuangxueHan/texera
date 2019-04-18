@@ -7,7 +7,6 @@ import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs/Subject';
 
 import * as joint from 'jointjs';
-import { JointGraphWrapper } from '../workflow-graph/model/joint-graph-wrapper';
 
 /**
  * The OperatorDragDropService class implements the behavior of dragging an operator label from the side bar
@@ -51,6 +50,8 @@ export class DragDropService {
   private elementOperatorTypeMap = new Map<string, string>();
   /** the current operatorType of the operator being dragged */
   private currentOperatorType = DragDropService.DRAG_DROP_TEMP_OPERATOR_TYPE;
+
+
   /** Subject for operator dragging is started */
   private operatorDragStartedSubject = new Subject<{ operatorType: string }>();
 
@@ -77,20 +78,8 @@ export class DragDropService {
       value => {
         // construct the operator from the drop stream value
         const operator = this.workflowUtilService.getNewOperatorPredicate(value.operatorType);
-        /**
-         * get the new drop coordinate of operator, when users drag or zoom the panel, to make sure the operator will
-         drop on the right location.
-         */
-
-        const newOperatorOffset: Point = {
-          x:  (value.offset.x - this.workflowActionService.getJointGraphWrapper().getDragOffset().x)
-              / this.workflowActionService.getJointGraphWrapper().getZoomRatio(),
-          y: (value.offset.y - this.workflowActionService.getJointGraphWrapper().getDragOffset().y)
-              / this.workflowActionService.getJointGraphWrapper().getZoomRatio()
-        };
-
         // add the operator
-        this.workflowActionService.addOperator(operator, newOperatorOffset);
+        this.workflowActionService.addOperator(operator, value.offset);
         // highlight the operator after adding the operator
         this.workflowActionService.getJointGraphWrapper().highlightOperator(operator.operatorID);
         // reset the current operator type to an non-exist type
@@ -108,6 +97,7 @@ export class DragDropService {
     return this.operatorDragStartedSubject.asObservable();
   }
 
+
   /**
    * Gets an observable for operator is dropped on the main workflow editor event
    * Contains an object with:
@@ -117,7 +107,6 @@ export class DragDropService {
   public getOperatorDropStream(): Observable<{ operatorType: string, offset: Point }> {
     return this.operatorDroppedSubject.asObservable();
   }
-
 
   /**
    * This function is intended by be used by the operator labels to make the element draggable.
@@ -138,12 +127,7 @@ export class DragDropService {
       helper: () => this.createFlyingOperatorElement(operatorType),
       // declare event as type any because the jQueryUI type declaration is wrong
       // it should be of type JQuery.Event, which is incompatible with the the declared type Event
-      start: (event: any, ui) => this.handleOperatorStartDrag(event, ui),
-      // The draggable element will be created with the mouse starting point at the center
-      cursorAt : {
-        left: JointUIService.DEFAULT_OPERATOR_WIDTH / 2,
-        top: JointUIService.DEFAULT_OPERATOR_HEIGHT / 2
-      }
+      start: (event: any, ui) => this.handleOperatorStartDrag(event, ui)
     });
   }
 
@@ -203,10 +187,7 @@ export class DragDropService {
    * @param ui jQueryUI Draggable Event UI
    */
   private handleOperatorStartDrag(event: JQuery.Event, ui: JQueryUI.DraggableEventUIParams): void {
-    const eventElement = event.target;
-    if (!(eventElement instanceof Element)) {
-      throw new Error('Incorrect type: in most cases, this element is type Element');
-    }
+    const eventElement = event.toElement;
     if (eventElement === undefined) {
       throw new Error('drag and drop: cannot find element when drag is started');
     }

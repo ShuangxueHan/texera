@@ -112,6 +112,6 @@ public class HadoopExample extends Configured implements Tool{
     public static void main(String[] args) throws Exception {
         HadoopExample example = new HadoopExample();
         int rc = ToolRunner.run(example,args);
-        System.exit(rc);
+        //System.exit(rc);
     }
 }

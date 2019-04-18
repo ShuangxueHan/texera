@@ -1,5 +1,6 @@
 package edu.uci.ics.texera.dataflow.source.file;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,7 +54,9 @@ public class FileSourceOperator implements ISourceOperator {
     
     // cursor indicating the current position
     private Integer cursor = CLOSED;
-
+    //private Integer cursorTuple = CLOSED;
+    private List<String> contentList = new ArrayList<>();
+    private BufferedReader bufferedReader  = null;
     
     public FileSourceOperator(FileSourcePredicate predicate) {
         this.predicate = predicate;
@@ -101,21 +104,13 @@ public class FileSourceOperator implements ISourceOperator {
 
     @Override
     public void open() throws TexeraException {
+        //System.out.println("FileSourceOperator: file open!"+cursor+pathList.size());
         if (cursor != CLOSED) {
             return;
         }
         cursor = OPENED;
-    }
-
-    @Override
-    public Tuple getNextTuple() throws TexeraException {
-        if (cursor == CLOSED || cursor >= pathList.size()) {
-            return null;
-        }
-        // keep iterating until 
-        //   1) a file is converted to a tuple successfully
-        //   2) the cursor reaches the end
-        while (cursor < pathList.size()) {            
+       // cursorTuple = OPENED;
+        while (cursor < pathList.size()) {
             try {
                 Path path = pathIterator.next();
                 String extension = com.google.common.io.Files.getFileExtension(path.toString());
@@ -127,17 +122,46 @@ public class FileSourceOperator implements ISourceOperator {
                 } else if(extension.equalsIgnoreCase("doc") || extension.equalsIgnoreCase("docx")) {
                     content = FileExtractorUtils.extractWordFile(path);
                 } else {
-                    content = FileExtractorUtils.extractPlainTextFile(path);
+                    //content = FileExtractorUtils.extractPlainTextFile(path);
+                    //contentList = FileExtractorUtils.readTextFileLines(path);
+                    //contentList = FileExtractorUtils.readTextFileWarmLines(path, 1000000);
+                    //contentList = FileExtractorUtils.readTextFileLineG(path);
+                    //try{
+                   bufferedReader = FileExtractorUtils.readFileG(path);
+                   //bufferedReader.close();
+
+
                 }
-                Tuple tuple = new Tuple(outputSchema, IDField.newRandomID(), new TextField(content));
                 cursor++;
-                return tuple;
             } catch (DataflowException e) {
                 // ignore error and move on
                 // TODO: use log4j
                 System.out.println("FileSourceOperator: file read error, file is ignored. " + e.getMessage());
             }
-        }    
+        }
+
+    }
+
+    @Override
+    public Tuple getNextTuple() throws TexeraException {
+        //System.out.println("FileSourceOperator: getNextTuple"+cursor);
+        //if (contentList.isEmpty()) {
+         //   return null;
+        //}
+
+        // keep iterating until 
+        //   1) a file is converted to a tuple successfully
+        //   2) the cursor reaches the end
+        try {
+            //String content = FileExtractorUtils.extractPlainTextFileOneLine(contentList);
+            String content = FileExtractorUtils.extraTextFileOneLineMillion(bufferedReader);
+            Tuple tuple = new Tuple(outputSchema, IDField.newRandomID(), new TextField(content));
+            return tuple;
+        } catch (DataflowException e) {
+            // ignore error and move on
+            // TODO: use log4j
+            System.out.println("FileSourceOperator: Tuple read error, file is ignored. " + e.getMessage());
+        }
         return null;
     }
 
@@ -147,6 +171,11 @@ public class FileSourceOperator implements ISourceOperator {
             return;
         }
         cursor = CLOSED;
+        try{
+            bufferedReader.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -162,5 +191,8 @@ public class FileSourceOperator implements ISourceOperator {
         if (inputSchema == null || inputSchema.length == 0)
             return getOutputSchema();
         throw new TexeraException(ErrorMessages.INVALID_INPUT_SCHEMA_FOR_SOURCE);
+    }
+    public void seek(){
+
     }
 }

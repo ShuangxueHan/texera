@@ -51,11 +51,11 @@ public class RunPerftests {
             List<String> regexQueries = Arrays.asList("mosquitos?", "v[ir]{2}[us]{2}", "market(ing)?",
                     "medic(ine|al|ation|are|aid)?", "[A-Z][aeiou|AEIOU][A-Za-z]*");
 
-            KeywordMatcherPerformanceTest.runTest("sample_queries.txt");
-            DictionaryMatcherPerformanceTest.runTest("sample_queries.txt");
-            FuzzyTokenMatcherPerformanceTest.runTest("sample_queries.txt", thresholds);
+            //KeywordMatcherPerformanceTest.runTest("sample_queries.txt");
+            //DictionaryMatcherPerformanceTest.runTest("sample_queries.txt");
+            //FuzzyTokenMatcherPerformanceTest.runTest("sample_queries.txt", thresholds);
             RegexMatcherPerformanceTest.runTest(regexQueries);
-            NlpExtractorPerformanceTest.runTest();
+            //NlpExtractorPerformanceTest.runTest();
 
         } catch (StorageException | DataflowException | IOException e) {
             e.printStackTrace();
