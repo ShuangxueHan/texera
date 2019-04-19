@@ -135,7 +135,7 @@ public class RegexMatcher extends AbstractSingleInputOperator {
             // set up the needed data structures for optimization and dynamic
             // evaluation
             // 1. break the regex into a number of sub-regexes that are called CoreSubRegexes or CSRs here.
-            breakIntoCoreSubregexes(null);
+            //breakIntoCoreSubregexes(null);
             //2. initializeOffsetMatrix
             //initializeOffsetMatrix();
             // 2. maintain the subregexes in a graph.
@@ -354,7 +354,7 @@ public class RegexMatcher extends AbstractSingleInputOperator {
                // matchingResults = computeMatchingResultsWithPatternC();
                 //matchingResults = computeMatchingResultsWithPatternD();
                     //matchingResults = computeMatchingResultsWithPattenABC(1);
-                    matchingResults = compyteMatchingResultsWithABCList();
+                    matchingResults = compyteMatchingResultsWithABListC();
 
                 //else
                     // matching  without STAR
@@ -810,6 +810,74 @@ public class RegexMatcher extends AbstractSingleInputOperator {
         return  matchingResults;
     }
 
+    /**
+     * FOR Al + Bl + Cv
+     * @return
+     */
+    public  List<Span> compyteMatchingResultsWithABListC(){
+        boolean flag = true;
+        SubRegex sub = coreSubRegexes.get(0);
+        List<Span> matchingResults = computeMatchingResultsWithPattern(fieldValue, sub.predicate, sub.regexPatern);
+
+
+        //System.out.println("coreSubRegexes : " + sub);
+
+        if(matchingResults.isEmpty())
+            return matchingResults;
+
+        SubRegex nextSub = coreSubRegexes.get(1);
+
+        //System.out.println("coreSubRegexes : " + sub+ "size : " + matchingResults.size());
+        List<Span> currentResults = computeMatchingResultsWithPattern(fieldValue, nextSub.predicate, nextSub.regexPatern);
+        if(currentResults.isEmpty()) {
+            matchingResults.clear();
+            return  matchingResults;
+        }
+
+        //System.out.println("  occ  " + currentResults.size());
+        //System.out.println(nextSub.originalSubId + "subregex : " + sub.originalSubId);
+        Pattern pattern;
+        Matcher javaMatcher;
+        if(sub.originalSubId > nextSub.originalSubId){
+            //flag = false;
+            matchingResults = computeSpanIntersection(currentResults, matchingResults);
+
+        }else {
+            matchingResults = computeSpanIntersection(matchingResults, currentResults);
+
+        }
+        if(matchingResults.isEmpty())
+            return matchingResults;
+
+        if(flag){
+            pattern = coreSubRegexes.get(2).regexPatern;
+            javaMatcher =  pattern.matcher(fieldValue);
+        }
+        else{
+            pattern = coreSubRegexes.get(2).reverseSubRegex.regexPatern;
+            StringBuffer sb = new StringBuffer(fieldValue);
+            String revFieldValue = sb.reverse().toString();
+            javaMatcher =  pattern.matcher(revFieldValue);
+        }
+
+
+         for(int i=0; i<matchingResults.size();i++){
+             Span span = matchingResults.get(i);
+             int start = span.getStart();
+             int end = span.getEnd();
+             if(flag){
+                 if(javaMatcher.find(end) && javaMatcher.start() == end){
+
+                 }
+             }
+
+         }
+
+
+        //System.out.println("matchingResultsSize= " + matchingResults.size());
+
+        return  matchingResults;
+    }
     /**
      *
      * @param inputTuple
