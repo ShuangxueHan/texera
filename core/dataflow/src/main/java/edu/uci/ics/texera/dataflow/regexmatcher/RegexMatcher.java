@@ -354,7 +354,7 @@ public class RegexMatcher extends AbstractSingleInputOperator {
                // matchingResults = computeMatchingResultsWithPatternC();
                 //matchingResults = computeMatchingResultsWithPatternD();
                     //matchingResults = computeMatchingResultsWithPattenABC(1);
-                    matchingResults = compyteMatchingResultsWithABCList(1);
+                    matchingResults = compyteMatchingResultsWithABCList();
 
                 //else
                     // matching  without STAR
@@ -737,29 +737,39 @@ public class RegexMatcher extends AbstractSingleInputOperator {
 
     /**
      * FOR Al + Bl + Cl or Cl + Bl + Al
-     * @param flag
+
      * @return
      */
-    public  List<Span> compyteMatchingResultsWithABCList(int flag){
+    public  List<Span> compyteMatchingResultsWithABCList(){
         List<Span> matchingResults = new ArrayList<>();
         // 5. matching every subregex and merge the matchingResultsList
 
         //TreeMap<Pair<Double, Double>, Pair<SubRegex, Integer>> subMatchMap = new TreeMap<>();
 
-        int tupleSize = fieldValue.length();
+        //int tupleSize = fieldValue.length();
         //List<Long> timeList = new ArrayList<>();
         //System.out.println("Tuplesize: " + tupleSize);
         //long startTime = 0;
         //long endTime = 0;
-        Pattern subRegexPattern;
-        SubRegex sub;
-        List<Span> currentResults = new ArrayList<>();
+        //Pattern subRegexPattern;
+        SubRegex sub = coreSubRegexes.get(0);
+        matchingResults = computeMatchingResultsWithPattern(fieldValue, sub.predicate, sub.regexPatern);
+
+
         //System.out.println("coreSubRegexes : " + coreSubRegexes.size());
-        for (int i = 0; i < coreSubRegexes.size(); i++) {
+        for (int i = 1; i < coreSubRegexes.size(); i++) {
+
             //subRegexPattern = coreSubPatterns.get(i);
-            sub = coreSubRegexes.get(i);
-            subRegexPattern = sub.regexPatern;
-            currentResults = computeMatchingResultsWithPattern(fieldValue, sub.predicate, subRegexPattern);
+            if(matchingResults.isEmpty()) break;
+
+            SubRegex nextSub = coreSubRegexes.get(i);
+
+            //System.out.println("coreSubRegexes : " + sub+ "size : " + matchingResults.size());
+            List<Span> currentResults = computeMatchingResultsWithPattern(fieldValue, nextSub.predicate, nextSub.regexPatern);
+            if(currentResults.isEmpty()) {
+                matchingResults.clear();
+                break;
+            }
 
             /* FOR Statistics
             endTime = System.currentTimeMillis();
@@ -774,9 +784,9 @@ public class RegexMatcher extends AbstractSingleInputOperator {
             sub.selectivity = sub.stats.getSelectivity();
             sub.selectivity = currentResults.size() * 1.0 / tupleSize;
 
-            //System.out.println(sub + "subregex : " + sub.originalSubId);
 
-            //System.out.println("  occ  " + currentResults.size());
+
+
             //sub.stats.addStatsSubRegexSuccess(matchTime, currentResults.size());
             Pair<Double, Double> matchMap1 = new MutablePair<>(sub.selectivity, time);
             Pair<SubRegex, Integer> matchMap2 = new MutablePair<>(sub, currentResults.size());
@@ -785,10 +795,15 @@ public class RegexMatcher extends AbstractSingleInputOperator {
             //System.out.println("Warmup: "+ currentResults.size() + sub + " selectivity:  "+ sub.selectivity  + " time: " + time);
 
              */
-            if (i == 0) matchingResults = currentResults;
-            else
+            //if (i == 0) matchingResults = currentResults;
+            //System.out.println("  occ  " + currentResults.size());
+            //System.out.println(nextSub.originalSubId + "subregex : " + sub.originalSubId);
+            if(sub.originalSubId > nextSub.originalSubId){
+                matchingResults = computeSpanIntersection(currentResults, matchingResults);
+            }else
                 matchingResults = computeSpanIntersection(matchingResults, currentResults);
 
+            sub = nextSub;
             //System.out.println("matchingResultsSize= " + matchingResults.size());
 
         }
@@ -1577,9 +1592,9 @@ public class RegexMatcher extends AbstractSingleInputOperator {
  * * test different order of subregex matching
  */
 
-        coreSubRegexes.get(0).selectivity = 0.2;
-        coreSubRegexes.get(1).selectivity = 0.1;
-        //coreSubRegexes.get(2).selectivity = 0.3;
+        coreSubRegexes.get(0).selectivity = 0.3;
+        coreSubRegexes.get(1).selectivity = 0.2;
+        coreSubRegexes.get(2).selectivity = 0.1;
         coreSubRegexes.sort(Comparator.comparing(SubRegex::getSelectivity));
 
 
@@ -1795,9 +1810,9 @@ public class RegexMatcher extends AbstractSingleInputOperator {
 
     }
 
-    private List<Span> computeSpanIntersection(List<Span> matchingResults, List<Span> currentResults, SubRegex startSubRegex){
+    private List<Span> computeSpanIntersection(List<Span> matchingResults, List<Span> currentResults, SubRegex starSubRegex){
         List<Span> finalResults = new ArrayList<>();
-        Pattern starPattern = startSubRegex.regexPatern;
+        Pattern starPattern = starSubRegex.regexPatern;
 
 
         // System.out.println("2 computeSpanIntersection: "+ currentResults.size()+matchingResults.size());
@@ -1808,7 +1823,7 @@ public class RegexMatcher extends AbstractSingleInputOperator {
                 if (span.getEnd() <= curSpan.getStart()) {
                     Matcher starMatcher = starPattern.matcher(fieldValue.substring(span.getEnd(), curSpan.getStart()));
                     if(starMatcher.matches()) {
-                        String connectRegexPredicate = span.getKey() + startSubRegex.predicate.getRegex() + curSpan.getKey();
+                        String connectRegexPredicate = span.getKey() + starSubRegex.predicate.getRegex() + curSpan.getKey();
                         int start = span.getStart();
                         int end = curSpan.getEnd();
                         //String value = span.getValue() + curSpan.getValue();

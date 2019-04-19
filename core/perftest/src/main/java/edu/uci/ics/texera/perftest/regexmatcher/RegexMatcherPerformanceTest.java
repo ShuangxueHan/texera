@@ -115,7 +115,7 @@ public class RegexMatcherPerformanceTest {
         List<String> attributeNames =Arrays.asList("content");
         String attrName = "content";
         Schema schema = new Schema(new Attribute(attrName, AttributeType.TEXT));
-        Path tempFolderPath = Paths.get("./core/perftest/src/main/resources/sample-data-files");
+        Path tempFolderPath = Paths.get("./perftest/src/main/resources/sample-data-files");
         //Path tempFile1Path = tempFolderPath.resolve("promed.txt");
         //Path tempFile1Path = tempFolderPath.resolve("test.txt");
        // Path tempFile1Path = tempFolderPath.resolve("test_short.txt");

@@ -99,7 +99,7 @@ public class RunTests {
             //List<String> regexQueries = Arrays.asList("(https?:\\/\\/[\\w\\.\\/]+\\/[\\w\\.\\/]+\\.)jpeg");
             //Address
             //List<String> regexQueries = Arrays.asList("([0-9]+)((?:st|nd|rd|th)\\s?)(avenue|street|St|Precinct|Ave|Floor)");
-            List<String> regexQueries = Arrays.asList("(([0-9]+)(?:st|nd|rd|th)\\s?)Floor");
+            List<String> regexQueries = Arrays.asList("([0-9]+)((?:st|nd|rd|th)\\s?)Floor");
             //List<String> regexQueries = Arrays.asList("([0-9]+)(?:st|nd|rd|th)\\s?Floor");
            // List<String> regexQueries = Arrays.asList("http(s?\\:\\/\\/[a-zA-Z0-9\\-\\.]+\\.[a-zA-Z]{2,7}(?:\\/[\\w\\-]+)*\\.)jpeg");
 
